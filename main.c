@@ -24,6 +24,11 @@ typedef struct {
 int pos;
 char *src;
 
+int usesadd = 0;
+int usessub = 0;
+int usesmul = 0;
+int usesdiv = 0;
+
 Token tok(TokenType type, char *value) {
 	Token t;
 	t.type = type;
@@ -39,6 +44,7 @@ Token nexttoken() {
 		case ')': pos++; return tok(T_LPARAN, ")");
 		case '{': pos++; return tok(T_RBRACE, "{");
 		case '}': pos++; return tok(T_LBRACE, "}");
+		case '=': pos++; return tok(T_ASSIGN, "=");
 		case ';': pos++; return tok(T_SEMI,   ";");
 		case '\0': return tok(T_EOF, "");
 	}
@@ -124,8 +130,18 @@ void parsecall() {
 		strcpy(arg, current.value);
 		advance();
 	}
+	char arg2[256] = "";
+	if (!check(T_LPARAN)) {
+		strcpy(arg2, current.value);
+		advance();
+	}
 	expect(T_LPARAN);
 	expect(T_SEMI);
+	if (strcmp(name, "add") == 0) {
+		usesadd = 1;
+		fprintf(out, "%s + %s", arg, arg2);
+		return;
+	}
 	fprintf(out, "\t%s(\"%s\");\n", name, arg);
 }
 
@@ -146,6 +162,7 @@ int parsefunc() {
 	strcpy(name, current.value);
 	advance();
 	expect(T_RPARAN);
+	//TODO: arg and arg2 getting "fn abc(foo bear)"
 	expect(T_LPARAN);
 	expect(T_RBRACE);
 	fprintf(out, "int %s() {\n", name);
